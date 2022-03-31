@@ -1,0 +1,333 @@
+<!-- See in Tailwind Play: https://play.tailwindcss.com/3ymMKGcdVE  -->
+
+<svg hidden>
+  <defs>
+    <symbol id="icon-add" fill="none" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></symbol>
+    <symbol id="icon-cross" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><text y="0.7em" font-size="24">x</text></symbol>
+    <symbol id="icon-pilcrow" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><text y="0.7em" font-size="24">¶</text></symbol>
+  </defs>
+</svg>
+
+<div class="w-grid w-grid-flow-col">
+<div class="w-p-4">
+
+<!-- Here is template pseudo-code for the panel: -->
+
+<template title="wagtail-panel.html">
+  <!-- <wagtail-panel.html> -->
+
+  <!-- Panels will need a unique ID to make sure they are linkable, and for ARIA attributes. Unsure how we’ll enforce this.  -->
+  <!-- Ideally the ID should be the slugified heading so it’s user-readable. Maybe with the tab id as well?  -->
+  <section
+    id="{{ panel_id_prefix }}-{{ panel.id }}"
+    aria-labelledby="{{ panel_id_prefix }}-{{ panel.id }}_heading"
+    class="w-panel"
+  >
+    <div class="w-panel__header">
+      {% if linkable %}
+        <a href="#{{ panel_id_prefix }}-{{ panel.id }}" aria-label="Link to {{ panel.heading }} section">#</a>
+      {% endif %}
+      {% if collapsible %}
+        <button
+          type="button"
+          class="w-panel__toggle"
+          aria-label="Toggle {{ panel.heading }} section"
+          aria-controls="{{ panel_id_prefix }}-{{ panel.id }}_content"
+          aria-expanded="true"
+        >
+          <svg width="16" height="16"><use href="#icon-{% if panel.icon %}{{ panel.icon }}{% else %}pilcrow{% endif %}"></svg>
+        </button>
+      {% endif %}
+      <h2 id="{{ panel_id_prefix }}-{{ panel.id }}_heading" class="w-panel__heading">
+        <!-- Potential TODO: would be nice to not have to tie single-field panels to their field like this. -->
+        <!-- Is it a failure of SC 1.3.1 Info and Relationship if the label isn’t associated with the field? -->
+
+        {% if single_field %}
+          <label class="w-panel__heading-text" for="{{ field.id }}">{{ panel.heading }}</label>
+        {% else %}
+          <span class="w-panel__heading-text">{{ panel.heading }}</span>
+        {% endif %}
+      </h2>
+    </div>
+  
+    <div id="{{ panel_id_prefix }}-{{ panel.id }}_content" class="w-panel__content">
+      {% with show_label=!single_field %}
+        {% for field in panel %}
+          <!-- <wagtail-field.html> -->
+          {{ field }}
+          <!-- </wagtail-field.html> -->
+        {% endfor %}
+      {% endwith %}
+    </div>
+  </section>
+
+  <!-- </wagtail-panel.html> -->
+</template>
+
+<!-- And for each field within a panel: -->
+
+<template title="wagtail-field.html">
+  <!-- <wagtail-field.html> -->
+
+  <div id="{{ field.id }}_field" class="w-field {% if has_error %}w-field--error{% endif %}">
+    {% if show_label %}
+      {{ field.label_tag }}
+    {% endif %}
+
+    {% if has_error %}
+      <p id="{{ field.id }}_errors" class="w-error"><svg width="16" height="16"><use href="#icon-cross"></svg>{{ field.errors }}</p>
+    {% endif %}
+
+    <!-- <field’s widget.html> -->
+    {{ field }}
+    <!-- </field’s widget.html> -->
+
+    {% if has_help %}
+      <p id="{{ field.id }}_help_text" class="w-help-text">{{ field.help }}</p>
+    {% endif %}
+  </div>
+
+  <!-- </wagtail-field.html> -->
+</template>
+
+
+
+
+<form>
+  
+
+<!-- <wagtail-panel.html> -->
+<section
+  id="content-title_section"
+  aria-labelledby="content-title_section_heading"
+  class="w-panel"
+>
+  <div class="w-panel__header">
+    <h2 id="content-title_section_heading" class="w-panel__heading w-sr-only">
+      <label for="id_title">Page title</label>
+    </h2>
+  </div>
+
+  <div id="content-title_section_content" class="w-panel__content">
+    <!-- <wagtail-field.html> -->
+    <div id="id_title_field" class="w-field w-field--error">
+      <input
+        type="text"
+        id="id_title"
+        aria-invalid="true"
+        aria-describedby="id_title_count id_title_errors id_title_help_text"
+        class="w-h1"
+        placeholder="Page title field"
+        required
+      >
+      <span class="w-error" aria-hidden="true">*</span>
+      <p id="id_title_count" role="status">40 / 100</p>
+      <p id="id_title_errors" class="w-error"><svg width="16" height="16"><use href="#icon-cross"></svg>There is an error</p>
+      <p id="id_title_help_text" class="w-help-text">This is the help text for this field</p>
+    </div>
+    <!-- </wagtail-field.html> -->
+  </div>
+</section>
+<!-- </wagtail-panel.html> -->
+
+
+<section 
+  id="content-standalone_section"
+  aria-labelledby="content-standalone_section_heading"
+  class="w-panel"
+>
+  <div class="w-panel__header">
+    <a href="#content-standalone_section" aria-label="Link to standalone section">#</a>
+    <button
+      type="button"
+      class="w-panel__toggle"
+      aria-label="Toggle standalone field section"
+      aria-controls="content-standalone_section_content"
+      aria-expanded="true"
+    >
+      <svg width="16" height="16"><use href="#icon-pilcrow"></svg>
+    </button>
+    <h2 id="content-standalone_section_heading" class="w-panel__heading">
+      <label for="id_standalone">Standalone field<span class="w-error" aria-hidden="true">*</span></label>
+    </h2>
+  </div>
+
+  <div id="content-standalone_section_content" class="w-panel__content">
+    <div id="id_standalone_field" class="w-field w-field--error">
+      <input
+        type="text"
+        id="id_standalone"
+        aria-invalid="true"
+        aria-describedby="id_standalone_count id_standalone_help_text id_standalone_errors"
+        class="w-form-input"
+        placeholder=""
+        required
+      >
+      <p id="id_standalone_count" role="status">40 / 100</p>
+      <p id="id_standalone_help_text" class="w-help-text">This is the help text for this field</p>
+    </div>
+  </div>
+</section>
+
+<section 
+  id="content-field_group_mfp_section"
+  aria-labelledby="content-field_group_mfp_section_heading"
+  class="w-panel"
+>
+  <div class="w-panel__header">
+    <a href="#content-field_group_mfp_section" aria-label="Link to Field group (Multi-field panel) section">#</a>
+    <button
+      type="button"
+      class="w-panel__toggle"
+      aria-label="Toggle Field group (Multi-field panel) section"
+      aria-controls="content-field_group_mfp_section_content"
+      aria-expanded="true"
+    >
+      <svg width="16" height="16"><use href="#icon-pilcrow"></svg>
+    </button>
+    <h2 id="content-field_group_mfp_section_heading" class="w-panel__heading w-h3 w-inline-block">
+      Field group (Multi-field panel)
+    </h2>
+  </div>
+
+  <div id="content-field_group_mfp_section_content" class="w-panel__content">
+    <div id="id_field_one_field" class="w-field w-field--error">
+      <label for="id_field_one" class="w-field__label">Field one<span class="w-error" aria-hidden="true">*</span></label>
+      <p id="id_field_one_errors" class="w-error"><svg width="16" height="16"><use href="#icon-cross"></svg>There is an error</p>
+      <input
+        type="text"
+        id="id_field_one"
+        aria-invalid="true"
+        aria-describedby="id_field_one_count id_field_one_help_text id_field_one_errors"
+        class="w-form-input"
+        placeholder=""
+        required
+      >
+      <p id="id_field_one_count" role="status">40 / 100</p>
+      <p id="id_field_one_help_text" class="w-help-text">If the help text gets really long then we will truncate it so that it doesn’t become rea…</p>
+    </div>
+    <div id="id_field_two_field" class="w-field w-field--error">
+      <label for="id_field_two" class="w-field__label">Field two</label>
+      <input
+        type="text"
+        id="id_field_two"
+        aria-invalid="true"
+        aria-describedby="id_field_two_count id_field_two_help_text id_field_two_errors"
+        class="w-form-input"
+        placeholder=""
+        required
+      >
+      <p id="id_field_two_count" role="status">40 / 100</p>
+      <p id="id_field_two_help_text" class="w-help-text">This is the help text for this field</p>
+    </div>
+    <div id="id_select_field" class="w-field w-field--error">
+      <label for="id_select" class="w-field__label">Select</label>
+      <select
+        id="id_select"
+        aria-invalid="true"
+        aria-describedby="id_select_count id_select_help_text id_select_errors"
+        class="w-form-input"
+      >
+        <option value="">Select</option>
+        <option value="one">One</option>
+        <option value="two">Two</option>
+      </select>
+      <p id="id_select_help_text" class="w-help-text">This is the help text for this field</p>
+    </div>
+
+    <div id="id_inline_panel_field" class="w-field w-field--error">
+      <!-- Potential TODO: unclear what the markup should be for InlinePanel. -->
+      <!-- Field label? h3? nothing? -->
+      <p class="w-field__label">Inline panel</p>
+      <button type="button">
+        <div class="w-btn-with-icon">
+          <span class="w-btn-with-icon__icon">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-h-4 w-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+          </span>
+          <span class="w-btn-with-icon__text">
+            Add a page
+          </span>
+        </div>
+      </button>
+      <p id="id_inline_panel_help_text" class="w-help-text">This is the help text for this field</p>
+    </div>
+  </div>
+</section>
+
+<section 
+  id="content-field_group_mfp_section"
+  aria-labelledby="content-field_group_mfp_section_heading"
+  class="w-panel w-panel--row"
+>
+  <div class="w-panel__header">
+    <a href="#content-field_group_mfp_section" aria-label="Link to Field group (Field row panel) section">#</a>
+    <button
+      type="button"
+      class="w-panel__toggle"
+      aria-label="Toggle Field group (Field row panel) section"
+      aria-controls="content-field_group_mfp_section_content"
+      aria-expanded="true"
+    >
+      <svg width="16" height="16"><use href="#icon-pilcrow"></svg>
+    </button>
+    <h2 id="content-field_group_mfp_section_heading" class="w-panel__heading w-h3 w-inline-block">
+      Field group (Field row panel)
+    </h2>
+  </div>
+
+  <div id="content-field_group_mfp_section_content" class="w-panel__content">
+    <div id="id_field_one_field" class="w-field w-field--error">
+      <label for="id_field_one" class="w-field__label">Field one<span class="w-error" aria-hidden="true">*</span></label>
+      <p id="id_field_one_errors" class="w-error"><svg width="16" height="16"><use href="#icon-cross"></svg>There is an error</p>
+      <input
+        type="text"
+        id="id_field_one"
+        aria-invalid="true"
+        aria-describedby="id_field_one_count id_field_one_help_text id_field_one_errors"
+        class="w-form-input"
+        placeholder=""
+        required
+      >
+      <p id="id_field_one_count" role="status">40 / 100</p>
+      <p id="id_field_one_help_text" class="w-help-text">If the help text gets really long then we will truncate it so that it doesn’t become rea…</p>
+    </div>
+    <div id="id_field_two_field" class="w-field w-field--error">
+      <label for="id_field_two" class="w-field__label">Field two</label>
+      <input
+        type="text"
+        id="id_field_two"
+        aria-invalid="true"
+        aria-describedby="id_field_two_count id_field_two_help_text id_field_two_errors"
+        class="w-form-input"
+        placeholder=""
+        required
+      >
+      <p id="id_field_two_count" role="status">40 / 100</p>
+      <p id="id_field_two_help_text" class="w-help-text">This is the help text for this field</p>
+    </div>
+    <div id="id_select_field" class="w-field w-field--error">
+      <label for="id_select" class="w-field__label">Select</label>
+      <select
+        id="id_select"
+        aria-invalid="true"
+        aria-describedby="id_select_count id_select_help_text id_select_errors"
+        class="w-form-input"
+      >
+        <option value="">Select</option>
+        <option value="one">One</option>
+        <option value="two">Two</option>
+      </select>
+      <p id="id_select_help_text" class="w-help-text">This is the help text for this field</p>
+    </div>
+  </div>
+</section>
+
+</form>
+
+</div>
+<div>
+  <p>Designs screenshot:</p>
+  <img src="https://i.imgur.com/FBBDuu1.png" alt=""> 
+</div>
